@@ -321,6 +321,7 @@ pub fn resolve_with_previous<'cfg>(
                 ResolveOpts {
                     dev_deps: opts.dev_deps,
                     features,
+                    supported_platforms: member.manifest().supported_platforms().to_vec(),
                 },
             )
         })

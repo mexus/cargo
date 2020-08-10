@@ -24,6 +24,7 @@ pub fn doc(ws: &Workspace<'_>, options: &DocOptions) -> CargoResult<()> {
         &options.compile_opts.features,
         options.compile_opts.all_features,
         !options.compile_opts.no_default_features,
+        ws.supported_platforms(),
     );
     let target_data = RustcTargetData::new(ws, &options.compile_opts.build_config.requested_kinds)?;
     let ws_resolve = ops::resolve_ws_with_opts(

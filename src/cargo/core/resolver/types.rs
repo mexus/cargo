@@ -3,6 +3,7 @@ use crate::core::{Dependency, PackageId, Summary};
 use crate::util::errors::CargoResult;
 use crate::util::interning::InternedString;
 use crate::util::Config;
+use cargo_platform::SupportedPlatform;
 use std::cmp::Ordering;
 use std::collections::{BTreeMap, BTreeSet};
 use std::ops::Range;
@@ -135,6 +136,9 @@ pub struct ResolveOpts {
     pub dev_deps: bool,
     /// Set of features requested on the command-line.
     pub features: RequestedFeatures,
+
+    /// Set of supported platforms. Empty for "all" platforms.
+    pub supported_platforms: Vec<SupportedPlatform>,
 }
 
 impl ResolveOpts {
@@ -143,6 +147,7 @@ impl ResolveOpts {
         ResolveOpts {
             dev_deps: true,
             features: RequestedFeatures::new_all(true),
+            supported_platforms: Vec::new(),
         }
     }
 
@@ -151,6 +156,7 @@ impl ResolveOpts {
         features: &[String],
         all_features: bool,
         uses_default_features: bool,
+        supported_platforms: &[SupportedPlatform],
     ) -> ResolveOpts {
         ResolveOpts {
             dev_deps,
@@ -159,6 +165,7 @@ impl ResolveOpts {
                 all_features,
                 uses_default_features,
             ),
+            supported_platforms: supported_platforms.to_vec(),
         }
     }
 }

@@ -74,6 +74,7 @@ pub fn resolve_std<'cfg>(
         /*profiles*/ None,
         crate::core::Features::default(),
         None,
+        None,
     );
 
     let config = ws.config();
@@ -109,8 +110,11 @@ pub fn resolve_std<'cfg>(
     };
     // dev_deps setting shouldn't really matter here.
     let opts = ResolveOpts::new(
-        /*dev_deps*/ false, &features, /*all_features*/ false,
+        /*dev_deps*/ false,
+        &features,
+        /*all_features*/ false,
         /*uses_default_features*/ false,
+        /*supported_platforms*/ &[],
     );
     let resolve = ops::resolve_ws_with_opts(
         &std_ws,

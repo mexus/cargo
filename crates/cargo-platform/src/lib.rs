@@ -9,6 +9,7 @@
 //! [`Platform`]: enum.Platform.html
 
 use std::fmt;
+use std::slice::from_ref;
 use std::str::FromStr;
 
 mod cfg;
@@ -16,6 +17,15 @@ mod error;
 
 pub use cfg::{Cfg, CfgExpr};
 pub use error::{ParseError, ParseErrorKind};
+
+/// Supported platform definition.
+#[derive(Eq, PartialEq, Hash, Ord, PartialOrd, Clone, Debug)]
+pub enum SupportedPlatform {
+    /// A named platform, like `x86_64-apple-darwin`.
+    Name(String),
+    /// A cfg expression, like `cfg(windows)`.
+    Cfg(Cfg),
+}
 
 /// Platform definition.
 #[derive(Eq, PartialEq, Hash, Ord, PartialOrd, Clone, Debug)]
@@ -34,6 +44,20 @@ impl Platform {
         match *self {
             Platform::Name(ref p) => p == name,
             Platform::Cfg(ref p) => p.matches(cfg),
+        }
+    }
+    /// Returns whether the Platform matches the given SupportedPlatform.
+    ///
+    /// The named target and cfg values should be obtained from `rustc`.
+    pub fn matches_supported(&self, requested: &SupportedPlatform) -> bool {
+        match (self, requested) {
+            (Platform::Name(name), SupportedPlatform::Name(requested_name)) => {
+                name == requested_name
+            }
+            (Platform::Cfg(cfg_expr), SupportedPlatform::Cfg(requested_cfg)) => {
+                cfg_expr.matches(from_ref(requested_cfg))
+            }
+            _ => false,
         }
     }
 
@@ -141,6 +165,49 @@ impl fmt::Display for Platform {
         match *self {
             Platform::Name(ref n) => n.fmt(f),
             Platform::Cfg(ref e) => write!(f, "cfg({})", e),
+        }
+    }
+}
+
+
+impl serde::Serialize for SupportedPlatform {
+    fn serialize<S>(&self, s: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.to_string().serialize(s)
+    }
+}
+
+impl<'de> serde::Deserialize<'de> for SupportedPlatform {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        FromStr::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+impl FromStr for SupportedPlatform {
+    type Err = ParseError;
+
+    fn from_str(s: &str) -> Result<SupportedPlatform, ParseError> {
+        if s.starts_with("cfg(") && s.ends_with(')') {
+            let s = &s[4..s.len() - 1];
+            s.parse().map(SupportedPlatform::Cfg)
+        } else {
+            Platform::validate_named_platform(s)?;
+            Ok(SupportedPlatform::Name(s.to_string()))
+        }
+    }
+}
+
+impl fmt::Display for SupportedPlatform {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match *self {
+            SupportedPlatform::Name(ref n) => n.fmt(f),
+            SupportedPlatform::Cfg(ref e) => write!(f, "cfg({})", e),
         }
     }
 }

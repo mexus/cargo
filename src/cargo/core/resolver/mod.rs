@@ -384,6 +384,7 @@ fn activate_deps_loop(
                     all_features: false,
                     uses_default_features: dep.uses_default_features(),
                 },
+                supported_platforms: Vec::new(), // FIXME
             };
             trace!(
                 "{}[{}]>{} trying {}",

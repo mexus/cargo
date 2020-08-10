@@ -18,6 +18,7 @@ use crate::util::errors::*;
 use crate::util::interning::InternedString;
 use crate::util::toml::{TomlManifest, TomlProfiles};
 use crate::util::{short_hash, Config, Filesystem};
+use cargo_platform::SupportedPlatform;
 
 pub enum EitherManifest {
     Real(Manifest),
@@ -48,6 +49,7 @@ pub struct Manifest {
     default_run: Option<String>,
     metabuild: Option<Vec<String>>,
     resolve_behavior: Option<ResolveBehavior>,
+    supported_platforms: Option<Vec<SupportedPlatform>>,
 }
 
 /// When parsing `Cargo.toml`, some warnings should silenced
@@ -71,6 +73,7 @@ pub struct VirtualManifest {
     warnings: Warnings,
     features: Features,
     resolve_behavior: Option<ResolveBehavior>,
+    supported_platforms: Option<Vec<SupportedPlatform>>,
 }
 
 /// General metadata about a package which is just blindly uploaded to the
@@ -378,6 +381,7 @@ impl Manifest {
         original: Rc<TomlManifest>,
         metabuild: Option<Vec<String>>,
         resolve_behavior: Option<ResolveBehavior>,
+        supported_platforms: Option<Vec<SupportedPlatform>>,
     ) -> Manifest {
         Manifest {
             summary,
@@ -401,6 +405,7 @@ impl Manifest {
             publish_lockfile,
             metabuild,
             resolve_behavior,
+            supported_platforms,
         }
     }
 
@@ -532,6 +537,13 @@ impl Manifest {
             .join(".metabuild")
             .join(format!("metabuild-{}-{}.rs", self.name(), hash))
     }
+
+    pub fn supported_platforms(&self) -> &[SupportedPlatform] {
+        self.supported_platforms
+            .as_ref()
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
+    }
 }
 
 impl VirtualManifest {
@@ -542,6 +554,7 @@ impl VirtualManifest {
         profiles: Option<TomlProfiles>,
         features: Features,
         resolve_behavior: Option<ResolveBehavior>,
+        supported_platforms: Option<Vec<SupportedPlatform>>,
     ) -> VirtualManifest {
         VirtualManifest {
             replace,
@@ -551,6 +564,7 @@ impl VirtualManifest {
             warnings: Warnings::new(),
             features,
             resolve_behavior,
+            supported_platforms,
         }
     }
 
@@ -587,6 +601,13 @@ impl VirtualManifest {
     /// Returns `None` if it is not specified.
     pub fn resolve_behavior(&self) -> Option<ResolveBehavior> {
         self.resolve_behavior
+    }
+
+    pub fn supported_platforms(&self) -> &[SupportedPlatform] {
+        self.supported_platforms
+            .as_ref()
+            .map(Vec::as_slice)
+            .unwrap_or(&[])
     }
 }
 

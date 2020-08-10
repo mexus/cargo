@@ -22,6 +22,7 @@ use crate::util::interning::InternedString;
 use crate::util::paths;
 use crate::util::toml::{read_manifest, TomlProfiles};
 use crate::util::{Config, Filesystem};
+use cargo_platform::SupportedPlatform;
 
 /// The core abstraction in Cargo for working with a workspace of crates.
 ///
@@ -92,6 +93,9 @@ pub struct Workspace<'cfg> {
 
     /// Workspace-level custom metadata
     custom_metadata: Option<toml::Value>,
+
+    /// Supported compilation platforms.
+    supported_platforms: Vec<SupportedPlatform>,
 }
 
 // Separate structure for tracking loaded packages (to avoid loading anything
@@ -168,6 +172,11 @@ impl<'cfg> Workspace<'cfg> {
             MaybePackage::Package(p) => p.manifest().resolve_behavior(),
             MaybePackage::Virtual(vm) => vm.resolve_behavior(),
         };
+        ws.supported_platforms = match ws.root_maybe() {
+            MaybePackage::Package(p) => p.manifest().supported_platforms(),
+            MaybePackage::Virtual(vm) => vm.supported_platforms(),
+        }
+        .to_vec();
         ws.validate()?;
         Ok(ws)
     }
@@ -191,6 +200,7 @@ impl<'cfg> Workspace<'cfg> {
             ignore_lock: false,
             resolve_behavior: None,
             custom_metadata: None,
+            supported_platforms: Vec::new(),
         }
     }
 
@@ -1085,6 +1095,11 @@ impl<'cfg> Workspace<'cfg> {
             }
         });
         Ok(ms.collect())
+    }
+
+    /// Supported compilation platforms.
+    pub fn supported_platforms(&self) -> &[SupportedPlatform] {
+        &self.supported_platforms
     }
 }
 

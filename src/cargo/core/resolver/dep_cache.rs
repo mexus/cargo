@@ -319,6 +319,17 @@ pub fn resolve_features<'b>(
         if dep.is_optional() && !reqs.deps.contains_key(&dep.name_in_toml()) {
             continue;
         }
+        // Skip dependenices that are only activated on specific platforms. 
+        if let Some(platform) = dep.platform() {
+            if !opts.supported_platforms.is_empty()
+                && !opts
+                    .supported_platforms
+                    .iter()
+                    .any(|supported_platform| platform.matches_supported(supported_platform))
+            {
+                continue;
+            }
+        }
         // So we want this dependency. Move the features we want from
         // `feature_deps` to `ret` and register ourselves as using this
         // name.

@@ -314,7 +314,13 @@ pub fn create_bcx<'a, 'cfg>(
 
     let specs = spec.to_package_id_specs(ws)?;
     let dev_deps = ws.require_optional_deps() || filter.need_dev_deps(build_config.mode);
-    let opts = ResolveOpts::new(dev_deps, features, all_features, !no_default_features);
+    let opts = ResolveOpts::new(
+        dev_deps,
+        features,
+        all_features,
+        !no_default_features,
+        ws.supported_platforms(),
+    );
     let has_dev_units = if filter.need_dev_deps(build_config.mode) {
         HasDevUnits::Yes
     } else {

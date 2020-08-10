@@ -5,7 +5,7 @@ use std::rc::Rc;
 use std::str;
 
 use anyhow::{anyhow, bail};
-use cargo_platform::Platform;
+use cargo_platform::{SupportedPlatform, Platform};
 use log::{debug, trace};
 use semver::{self, VersionReq};
 use serde::de;
@@ -268,6 +268,7 @@ pub struct TomlManifest {
     patch: Option<BTreeMap<String, BTreeMap<String, TomlDependency>>>,
     workspace: Option<TomlWorkspace>,
     badges: Option<BTreeMap<String, BTreeMap<String, String>>>,
+    supported_platforms: Option<Vec<SupportedPlatform>>,
 }
 
 #[derive(Deserialize, Serialize, Clone, Debug, Default)]
@@ -804,6 +805,7 @@ pub struct TomlProject {
     namespaced_features: Option<bool>,
     #[serde(rename = "default-run")]
     default_run: Option<String>,
+    supported_platforms: Option<Vec<SupportedPlatform>>,
 
     // Package metadata.
     description: Option<String>,
@@ -957,6 +959,7 @@ impl TomlManifest {
             workspace: None,
             badges: self.badges.clone(),
             cargo_features,
+            supported_platforms: self.supported_platforms.clone(),
         });
 
         fn map_deps(
@@ -1307,6 +1310,7 @@ impl TomlManifest {
             Rc::clone(me),
             project.metabuild.clone().map(|sov| sov.0),
             resolve_behavior,
+             project.supported_platforms.clone(),
         );
         if project.license_file.is_some() && project.license.is_some() {
             manifest.warnings_mut().add_warning(
@@ -1431,6 +1435,7 @@ impl TomlManifest {
                 profiles,
                 features,
                 resolve_behavior,
+                me.supported_platforms.clone(),
             ),
             nested_paths,
         ))

@@ -141,6 +141,7 @@ pub fn build_and_print(ws: &Workspace<'_>, opts: &TreeOptions) -> CargoResult<()
         &opts.features,
         opts.all_features,
         !opts.no_default_features,
+        ws.supported_platforms(),
     );
     let has_dev = if opts
         .edge_kinds

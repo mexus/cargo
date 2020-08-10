@@ -118,6 +118,7 @@ fn build_resolve_graph(
         &metadata_opts.features,
         metadata_opts.all_features,
         !metadata_opts.no_default_features,
+        ws.supported_platforms(),
     );
     let ws_resolve = ops::resolve_ws_with_opts(
         ws,
